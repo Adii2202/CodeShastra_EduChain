@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ColorModeSwitcher } from '../../../ColorModeSwitcher';
 import {
   Button,
@@ -11,6 +11,7 @@ import {
   VStack,
   useDisclosure,
 } from '@chakra-ui/react';
+
 import {
   RiDashboardFill,
   RiLogoutBoxLine,
@@ -21,20 +22,34 @@ import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../../redux/actions/user';
 
-const LinkButton = ({ url = '/', title = 'Home', onClose }) => (
-  <Link onClick={onClose} to={url}>
+const LinkButton = ({ url = '/', title = 'Home', onClose, handleHover }) => (
+  <Link onMouseEnter={() => handleHover(title)} onClick={onClose} to={url}>
     <Button variant={'ghost'}>{title}</Button>
   </Link>
 );
 
 const Header = ({ isAuthenticated = false, user }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [speech, setSpeech] = useState(null);
 
   const dispatch = useDispatch();
 
   const logoutHandler = () => {
     onClose();
     dispatch(logout());
+  };
+
+  const handleHover = text => {
+    if ('speechSynthesis' in window) {
+      const msg = new SpeechSynthesisUtterance(text);
+      setSpeech(msg);
+      setTimeout(() => {
+        speechSynthesis.cancel();
+      }, 2000);
+      speechSynthesis.speak(msg);
+    } else {
+      console.log('Speech synthesis not supported');
+    }
   };
 
   return (
@@ -62,19 +77,30 @@ const Header = ({ isAuthenticated = false, user }) => {
 
           <DrawerBody>
             <VStack spacing={'4'} alignItems={'flex-start'}>
-              <LinkButton onClose={onClose} url="/" title="Home" />
+              <LinkButton
+                onClose={onClose}
+                url="/"
+                title="Home"
+                handleHover={handleHover}
+              />
               <LinkButton
                 onClose={onClose}
                 url="/courses"
                 title="Browse All Courses"
+                handleHover={handleHover}
               />
               <LinkButton
                 onClose={onClose}
                 url="/request"
                 title="Request a Course"
+                handleHover={handleHover}
               />
-              <LinkButton onClose={onClose} url="/contact" title="Contact Us" />
-              <LinkButton onClose={onClose} url="/about" title="About" />
+              <LinkButton
+                onClose={onClose}
+                url="/contact"
+                title="Contact Us"
+                handleHover={handleHover}
+              />
 
               <HStack
                 justifyContent={'space-evenly'}
@@ -86,36 +112,41 @@ const Header = ({ isAuthenticated = false, user }) => {
                   <>
                     <VStack>
                       <HStack>
-                        <Link onClick={onClose} to="/profile">
-                          <Button variant={'ghost'} colorScheme={'yellow'}>
-                            <RiProfileFill /> Profile
-                          </Button>
-                        </Link>
+                        <LinkButton
+                          onClose={onClose}
+                          url="/profile"
+                          title="Profile"
+                          handleHover={handleHover}
+                        />
                         <Button variant={'ghost'} onClick={logoutHandler}>
                           <RiLogoutBoxLine /> Logout
                         </Button>
                       </HStack>
                       {user && user.role === 'admin' && (
-                        <Link onClick={onClose} to="admin/dashboard">
-                          <Button colorScheme={'purple'} variant={'ghost'}>
-                            <RiDashboardFill style={{ margin: '4px' }} />{' '}
-                            Dashboard
-                          </Button>
-                        </Link>
+                        <LinkButton
+                          onClose={onClose}
+                          url="admin/dashboard"
+                          title="Dashboard"
+                          handleHover={handleHover}
+                        />
                       )}
                     </VStack>
                   </>
                 ) : (
                   <>
-                    <Link onClick={onClose} to="/login">
-                      <Button colorScheme={'yellow'}>Login</Button>
-                    </Link>
-
+                    <LinkButton
+                      onClose={onClose}
+                      url="/login"
+                      title="Login"
+                      handleHover={handleHover}
+                    />
                     <p>OR</p>
-
-                    <Link onClick={onClose} to="/register">
-                      <Button colorScheme={'yellow'}>Sign Up</Button>
-                    </Link>
+                    <LinkButton
+                      onClose={onClose}
+                      url="/register"
+                      title="Sign Up"
+                      handleHover={handleHover}
+                    />
                   </>
                 )}
               </HStack>
